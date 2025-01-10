@@ -1,3 +1,5 @@
+import os
+
 import json
 from scipy import stats
 import numpy as np
@@ -5,13 +7,13 @@ import numpy as np
 import huggingface_hub
 
 
-def check_mask_stats(img, mask, modality_type, target):
+def check_mask_stats(img, mask, modality_type, target, target_dist_dir='./inference_utils', config_dir="./configs"):
     # img: np.array, shape=(H, W, 3) RGB image with pixel values in [0, 255]
     # mask: np.array, shape=(H, W, 1) mask probability scaled to [0,255] with pixel values in [0, 255]
     # modality_type: str, see target_dist.json for the list of modality types
     # target: str, see target_dist.json for the list of targets
     
-    target_dist = get_target_dist()
+    target_dist = get_target_dist(target_dist_dir, config_dir)
     
     if modality_type not in target_dist:
         raise ValueError(f"Currently support modality types: {list(target_dist.keys())}")
@@ -88,7 +90,7 @@ def combine_masks(predicts):
     
     return masks
 
-def get_target_dist():
-    huggingface_hub.hf_hub_download('microsoft/BiomedParse', filename='target_dist.json', local_dir='./inference_utils')
-    huggingface_hub.hf_hub_download('microsoft/BiomedParse', filename="config.yaml", local_dir="./configs")
-    return json.load(open("inference_utils/target_dist.json"))
+def get_target_dist(target_dist_dir='./inference_utils', config_dir="./configs"):
+    huggingface_hub.hf_hub_download('microsoft/BiomedParse', filename='target_dist.json', local_dir=target_dist_dir)
+    huggingface_hub.hf_hub_download('microsoft/BiomedParse', filename="config.yaml", local_dir=config_dir)
+    return json.load(open(os.path.join(target_dist_dir, "target_dist.json")))
